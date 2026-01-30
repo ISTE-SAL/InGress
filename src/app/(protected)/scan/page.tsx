@@ -8,6 +8,37 @@ import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
+type ScanResult = 
+  | { status: 'idle' }
+  | { status: 'success'; participant: Participant }
+  | { status: 'error'; message: string };
+
+export default function ScannerPage() {
+  const { logout } = useAuth();
+  const [activeEvent, setActiveEvent] = useState<IngressEvent | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [scanResult, setScanResult] = useState<ScanResult>({ status: 'idle' });
+  const [isScanning, setIsScanning] = useState(false);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+  useEffect(() => {
+    const fetchActiveEvent = async () => {
+      try {
+        const q = query(collection(db, 'events'), where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const eventDoc = snapshot.docs[0];
+          setActiveEvent({ id: eventDoc.id, ...eventDoc.data() } as IngressEvent);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActiveEvent();
+  }, []);
+
   useEffect(() => {
     if (!activeEvent || loading || !isScanning) return;
 
