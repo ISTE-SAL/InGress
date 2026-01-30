@@ -20,6 +20,7 @@ export default function ScannerPage() {
   const [scanResult, setScanResult] = useState<ScanResult>({ status: 'idle' });
   const [isScanning, setIsScanning] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const lastScannedRef = useRef<{ text: string, time: number } | null>(null);
 
   useEffect(() => {
     const fetchActiveEvent = async () => {
@@ -72,7 +73,20 @@ export default function ScannerPage() {
   }, [activeEvent, loading, isScanning]);
 
   const onScanSuccess = async (decodedText: string, decodedResult: any) => {
+      // Prevent frequent duplicate scans (e.g., if camera is still pointing at same code)
+      const now = Date.now();
+      if (lastScannedRef.current && 
+          lastScannedRef.current.text === decodedText && 
+          (now - lastScannedRef.current.time) < 3000) {
+          console.log("Ignored duplicate scan");
+          return;
+      }
+
       if (!activeEvent) return;
+      
+      // Update last scanned (do this before async ops to prevent race conditions)
+      lastScannedRef.current = { text: decodedText, time: now };
+
       if (scannerRef.current) {
           try {
              await scannerRef.current.pause(true); // Pause scanning
