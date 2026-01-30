@@ -3,38 +3,30 @@
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
-import { doc, getDoc, collection, getDocs, writeBatch, Timestamp, updateDoc } from 'firebase/firestore';
-import { Loader2, ArrowLeft, Upload, QrCode, Users, Trash2, Download } from 'lucide-react';
-import Link from 'next/link';
-import { useEffect, useState, use } from 'react';
-import { useParams } from 'next/navigation';
-import * as XLSX from 'xlsx';
-import { QRCodeSVG } from 'qrcode.react';
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
-import QRCode from 'qrcode';
+import { doc, getDoc, collection, getDocs, writeBatch, Timestamp, updateDoc, onSnapshot } from 'firebase/firestore';
 
-export default function EventDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const [event, setEvent] = useState<IngressEvent | null>(null);
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [importing, setImporting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'list' | 'import' | 'qr'>('list');
+// ... imports
 
   useEffect(() => {
+    let unsubscribeParticipants: () => void;
+
     const fetchData = async () => {
       if (!id) return;
       try {
-        const eventDoc = await getDoc(doc(db, 'events', id));
+        const eventDocRef = doc(db, 'events', id);
+        const eventDoc = await getDoc(eventDocRef);
+        
         if (eventDoc.exists()) {
           setEvent({ id: eventDoc.id, ...eventDoc.data() } as IngressEvent);
           
-          // Fetch participants
+          // Real-time listener for participants
           const pCol = collection(db, 'events', id, 'participants');
-          const pSnapshot = await getDocs(pCol);
-          const pList = pSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Participant));
-          setParticipants(pList);
+          unsubscribeParticipants = onSnapshot(pCol, (snapshot) => {
+              const pList = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Participant));
+              setParticipants(pList);
+          }, (error) => {
+              console.error("Error fetching participants realtime:", error);
+          });
         }
       } catch (err) {
         console.error(err);
@@ -42,7 +34,12 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
         setLoading(false);
       }
     };
+
     fetchData();
+
+    return () => {
+        if (unsubscribeParticipants) unsubscribeParticipants();
+    };
   }, [id]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
