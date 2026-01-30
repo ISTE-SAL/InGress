@@ -4,48 +4,12 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
-type ScanResult = 
-  | { status: 'idle' }
-  | { status: 'success'; participant: Participant }
-  | { status: 'error'; message: string };
+// ... (inside component)
 
-export default function ScannerPage() {
-  const { logout } = useAuth();
-  const [activeEvent, setActiveEvent] = useState<IngressEvent | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [scanResult, setScanResult] = useState<ScanResult>({ status: 'idle' });
-  const [isScanning, setIsScanning] = useState(false);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
-
-  useEffect(() => {
-    const fetchActiveEvent = async () => {
-      try {
-        const q = query(collection(db, 'events'), where('isActive', '==', true));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          // Pick the first active event (or logic to select latest)
-          const eventDoc = snapshot.docs[0];
-          setActiveEvent({ id: eventDoc.id, ...eventDoc.data() } as IngressEvent);
-        } else {
-          // No active event
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchActiveEvent();
-  }, []);
-
-  useEffect(() => {
-    if (!activeEvent || loading || !isScanning) return;
-
-    // Initialize Scanner
     const timer = setTimeout(() => {
         // Clear any existing instance first
         if (scannerRef.current) {
@@ -54,7 +18,11 @@ export default function ScannerPage() {
 
         const scanner = new Html5QrcodeScanner(
             "reader",
-            { fps: 10, qrbox: { width: 250, height: 250 } },
+            { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+            },
             /* verbose= */ false
         );
         scannerRef.current = scanner;
