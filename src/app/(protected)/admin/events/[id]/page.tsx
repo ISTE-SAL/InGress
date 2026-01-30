@@ -238,25 +238,25 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
   const percentage = totalParticipants > 0 ? Math.round((checkedInCount / totalParticipants) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-neutral-950 p-6 md:p-12">
-      <div className="mx-auto max-w-6xl space-y-8">
+  return (
+    <div className="min-h-screen bg-neutral-950 p-4 md:p-12">
+      <div className="mx-auto max-w-6xl space-y-6 md:space-y-8">
         {/* Header */}
          <div className="space-y-4">
-             {/* ... existing header code ... */}
-             <Link href="/admin" className="flex items-center text-neutral-400 hover:text-white transition-colors">
+             <Link href="/admin" className="inline-flex items-center text-neutral-400 hover:text-white transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
              </Link>
-             <div className="flex items-end justify-between">
+             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                  <div>
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-3xl font-bold text-white">{event.name}</h1>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <h1 className="text-2xl md:text-3xl font-bold text-white break-all">{event.name}</h1>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold border ${event.isActive ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
                             {event.isActive ? 'LIVE' : 'COMPLETED'}
                         </span>
                     </div>
-                    <div className="flex items-center gap-4 text-neutral-400">
-                        <p>{event.date} • {event.venue}</p>
+                    <div className="flex flex-wrap items-center gap-4 text-neutral-400 mt-2">
+                        <p className="text-sm md:text-base">{event.date} • {event.venue}</p>
                         <button 
                             onClick={toggleEventStatus}
                             className="text-xs hover:text-white underline decoration-dotted underline-offset-4"
@@ -265,54 +265,54 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                         </button>
                     </div>
                  </div>
-                 <div className="flex gap-2">
+                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
                      <button
                         onClick={() => setActiveTab('list')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'list' ? 'bg-white text-black' : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800'}`}
+                        className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center ${activeTab === 'list' ? 'bg-white text-black' : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800'}`}
                      >
-                        Participants ({participants.length})
+                        Participants <span className="hidden sm:inline">({participants.length})</span>
                      </button>
                      <button
                         onClick={() => setActiveTab('import')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'import' ? 'bg-white text-black' : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800'}`}
+                        className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center ${activeTab === 'import' ? 'bg-white text-black' : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800'}`}
                      >
-                        Import XLSX
+                        Import
                      </button>
                       <button
                         onClick={() => setActiveTab('qr')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'qr' ? 'bg-white text-black' : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800'}`}
+                        className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center ${activeTab === 'qr' ? 'bg-white text-black' : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800'}`}
                      >
-                        Generate QRs
+                        QRs
                      </button>
                  </div>
              </div>
          </div>
 
          {/* Content */}
-         <div className="rounded-2xl border border-neutral-800 bg-neutral-900/30 p-6 min-h-[400px]">
+         <div className="rounded-2xl border border-neutral-800 bg-neutral-900/30 p-4 md:p-6 min-h-[400px]">
             {activeTab === 'list' && (
                 <div className="space-y-6">
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                         <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">
                             <p className="text-neutral-500 text-xs uppercase font-bold">Total</p>
-                            <p className="text-2xl font-bold text-white">{totalParticipants}</p>
+                            <p className="text-xl md:text-2xl font-bold text-white">{totalParticipants}</p>
                         </div>
                         <div className="bg-green-500/10 p-4 rounded-xl border border-green-500/20">
                             <p className="text-green-500 text-xs uppercase font-bold">Checked In</p>
-                            <p className="text-2xl font-bold text-green-400">{checkedInCount}</p>
+                            <p className="text-xl md:text-2xl font-bold text-green-400">{checkedInCount}</p>
                         </div>
                         <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">
                             <p className="text-neutral-500 text-xs uppercase font-bold">Remaining</p>
-                            <p className="text-2xl font-bold text-white">{totalParticipants - checkedInCount}</p>
+                            <p className="text-xl md:text-2xl font-bold text-white">{totalParticipants - checkedInCount}</p>
                         </div>
                          <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">
                             <p className="text-neutral-500 text-xs uppercase font-bold">Turnout</p>
-                            <p className="text-2xl font-bold text-white">{percentage}%</p>
+                            <p className="text-xl md:text-2xl font-bold text-white">{percentage}%</p>
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center bg-neutral-900/50 p-3 rounded-lg border border-neutral-800">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-neutral-900/50 p-3 rounded-lg border border-neutral-800 gap-3">
                         <div className="text-sm text-neutral-400">
                             Showing <span className="text-white font-bold">{participants.length}</span> participants
                         </div>
