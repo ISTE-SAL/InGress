@@ -233,11 +233,16 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
   if (loading) return <div className="flex h-screen items-center justify-center bg-neutral-950"><Loader2 className="animate-spin text-rose-500" /></div>;
   if (!event) return <div className="p-12 text-white">Event not found</div>;
 
+  const totalParticipants = participants.length;
+  const checkedInCount = participants.filter(p => p.checkedIn).length;
+  const percentage = totalParticipants > 0 ? Math.round((checkedInCount / totalParticipants) * 100) : 0;
+
   return (
     <div className="min-h-screen bg-neutral-950 p-6 md:p-12">
       <div className="mx-auto max-w-6xl space-y-8">
         {/* Header */}
          <div className="space-y-4">
+             {/* ... existing header code ... */}
              <Link href="/admin" className="flex items-center text-neutral-400 hover:text-white transition-colors">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
@@ -286,7 +291,27 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
          {/* Content */}
          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/30 p-6 min-h-[400px]">
             {activeTab === 'list' && (
-                <div className="space-y-4">
+                <div className="space-y-6">
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">
+                            <p className="text-neutral-500 text-xs uppercase font-bold">Total</p>
+                            <p className="text-2xl font-bold text-white">{totalParticipants}</p>
+                        </div>
+                        <div className="bg-green-500/10 p-4 rounded-xl border border-green-500/20">
+                            <p className="text-green-500 text-xs uppercase font-bold">Checked In</p>
+                            <p className="text-2xl font-bold text-green-400">{checkedInCount}</p>
+                        </div>
+                        <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">
+                            <p className="text-neutral-500 text-xs uppercase font-bold">Remaining</p>
+                            <p className="text-2xl font-bold text-white">{totalParticipants - checkedInCount}</p>
+                        </div>
+                         <div className="bg-neutral-900/50 p-4 rounded-xl border border-neutral-800">
+                            <p className="text-neutral-500 text-xs uppercase font-bold">Turnout</p>
+                            <p className="text-2xl font-bold text-white">{percentage}%</p>
+                        </div>
+                    </div>
+
                     <div className="flex justify-between items-center bg-neutral-900/50 p-3 rounded-lg border border-neutral-800">
                         <div className="text-sm text-neutral-400">
                             Showing <span className="text-white font-bold">{participants.length}</span> participants
