@@ -2,6 +2,12 @@
 /* Rebuild trigger */
 @plugin "tailwindcss-animate";
 
+/* Ingress Custom Styles */
+/* Hide html5-qrcode file input just in case */
+#reader input[type="file"] {
+    display: none !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

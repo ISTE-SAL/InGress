@@ -150,64 +150,58 @@ export default function ScannerPage() {
       }
   };
 
-  if (loading) return <div className="bg-black h-screen flex items-center justify-center text-white">Loading...</div>;
+  // ... (previous code)
 
-  if (!activeEvent) {
-      return (
-          <div className="flex h-screen flex-col items-center justify-center bg-neutral-950 p-6 text-center text-white">
-              <ScanLine className="h-16 w-16 mb-4 text-neutral-500" />
-              <h1 className="text-2xl font-bold">No Active Event</h1>
-              <p className="text-neutral-400 mt-2">There are no events currently marked as active.</p>
-               <button onClick={logout} className="mt-8 text-rose-500 underline">Logout</button>
-          </div>
-      );
-  }
-
-  // Full Screen Results
-  if (scanResult.status === 'success') {
-      return (
-          <div className="flex h-screen flex-col items-center justify-center bg-green-600 p-6 text-center text-white animate-in fade-in duration-300">
-              <CheckCircle className="h-32 w-32 mb-6" />
-              <h1 className="text-4xl font-bold mb-2">Access Granted</h1>
-              <div className="bg-white/20 p-6 rounded-xl backdrop-blur-md w-full max-w-sm mt-4">
-                 <p className="text-xl font-semibold">{scanResult.participant.name}</p>
-                 <p className="text-green-100">{scanResult.participant.enrollment}</p>
-              </div>
-              <button 
-                onClick={resetScanner}
-                className="mt-12 w-full max-w-xs rounded-full bg-white px-8 py-4 text-xl font-bold text-green-700 shadow-lg hover:bg-green-50 transition-all"
-              >
-                  Scan Next
-              </button>
-          </div>
-      );
-  }
-
-  if (scanResult.status === 'error') {
-      return (
-           <div className="flex h-screen flex-col items-center justify-center bg-red-600 p-6 text-center text-white animate-in fade-in duration-300">
-              <XCircle className="h-32 w-32 mb-6" />
-              <h1 className="text-4xl font-bold mb-2">Access Denied</h1>
-              <p className="text-2xl font-medium opacity-90">{scanResult.message}</p>
-              
-              <button 
-                onClick={resetScanner}
-                className="mt-12 w-full max-w-xs rounded-full bg-white px-8 py-4 text-xl font-bold text-red-700 shadow-lg hover:bg-red-50 transition-all"
-              >
-                  Try Again
-              </button>
-          </div>
-      );
-  }
+  // NOTE: We do NOT return early for success/error anymore, 
+  // so the scanner instance in the DOM needs to persist.
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col">
-       {/* Header */}
-       <div className="flex items-center justify-between p-4 bg-neutral-900 border-b border-neutral-800">
-           <div>
-               <h2 className="text-white font-semibold">{activeEvent.name}</h2>
-               <p className="text-xs text-green-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/> LIVE SCANNING</p>
+    <div className="min-h-screen bg-neutral-950 flex flex-col relative">
+       {/* Global Overlay for Success/Error */}
+       {scanResult.status !== 'idle' && (
+           <div className={`absolute inset-0 z-50 flex flex-col items-center justify-center p-6 text-center text-white animate-in fade-in duration-300 ${scanResult.status === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+               {scanResult.status === 'success' ? (
+                   <>
+                       <CheckCircle className="h-32 w-32 mb-6" />
+                       <h1 className="text-4xl font-bold mb-2">Access Granted</h1>
+                       <div className="bg-white/20 p-6 rounded-xl backdrop-blur-md w-full max-w-sm mt-4">
+                           <p className="text-xl font-semibold">{scanResult.participant.name}</p>
+                           <p className="text-green-100">{scanResult.participant.enrollment}</p>
+                       </div>
+                       <button 
+                           onClick={resetScanner}
+                           className="mt-12 w-full max-w-xs rounded-full bg-white px-8 py-4 text-xl font-bold text-green-700 shadow-lg hover:bg-green-50 transition-all"
+                       >
+                           Scan Next
+                       </button>
+                   </>
+               ) : (
+                   <>
+                       <XCircle className="h-32 w-32 mb-6" />
+                       <h1 className="text-4xl font-bold mb-2">Access Denied</h1>
+                       <p className="text-2xl font-medium opacity-90">{scanResult.message}</p>
+                       
+                       <button 
+                           onClick={resetScanner}
+                           className="mt-12 w-full max-w-xs rounded-full bg-white px-8 py-4 text-xl font-bold text-red-700 shadow-lg hover:bg-red-50 transition-all"
+                       >
+                           Try Again
+                       </button>
+                   </>
+               )}
            </div>
+       )}
+
+       {/* Header */}
+       <div className="flex items-center justify-between p-4 bg-neutral-900 border-b border-neutral-800 z-10">
+           {activeEvent ? (
+               <div>
+                   <h2 className="text-white font-semibold">{activeEvent.name}</h2>
+                   <p className="text-xs text-green-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/> LIVE SCANNING</p>
+               </div>
+           ) : (
+               <div className="text-white">Loading...</div>
+           )}
            <button onClick={logout} className="p-2 text-neutral-400 hover:text-white">
                <LogOut className="h-5 w-5" />
            </button>
@@ -215,39 +209,51 @@ export default function ScannerPage() {
 
        {/* Scanner View */}
        <div className="flex-1 flex flex-col items-center pt-8 px-4">
-           {isScanning ? (
-               <>
-                   <div className="w-full max-w-md overflow-hidden rounded-2xl border-2 border-rose-500/50 shadow-[0_0_40px_rgba(225,29,72,0.2)] bg-black relative">
-                        <div id="reader" className="w-full h-full"></div>
-                   </div>
-                   <p className="mt-6 text-center text-neutral-400 text-sm max-w-xs">
-                       Position the QR code within the frame to scan.
-                   </p>
-                   <button 
-                       onClick={() => setIsScanning(false)}
-                       className="mt-4 text-xs text-neutral-500 underline"
-                   >
-                       Stop Camera
-                   </button>
-               </>
-           ) : (
-               <div className="flex flex-col items-center justify-center space-y-6 mt-12 text-center">
-                   <div className="p-6 bg-rose-500/10 rounded-full border border-rose-500/20">
-                       <Camera className="h-12 w-12 text-rose-500" />
-                   </div>
-                   <div className="space-y-2">
-                       <h3 className="text-xl font-bold text-white">Camera Access Required</h3>
-                       <p className="text-neutral-400 max-w-xs text-sm">
-                           Please enable camera access to scan participant QR codes.
-                       </p>
-                   </div>
-                   <button
-                       onClick={() => setIsScanning(true)}
-                       className="px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-rose-600/20"
-                   >
-                       Request Access & Start
-                   </button>
-               </div>
+           {/* If no active event, show empty state */}
+           {!activeEvent && !loading && (
+                <div className="flex flex-col items-center justify-center h-full text-center text-white">
+                    <ScanLine className="h-16 w-16 mb-4 text-neutral-500" />
+                    <h1 className="text-2xl font-bold">No Active Event</h1>
+                </div>
+           )}
+
+           {/* Scanner Container - Always render if an event exists, but might be hidden by overlay */}
+           {activeEvent && (
+                isScanning ? (
+                    <>
+                        {/* We use specific ID for styling to hide file input if library leaks it */}
+                        <div className="w-full max-w-md overflow-hidden rounded-2xl border-2 border-rose-500/50 shadow-[0_0_40px_rgba(225,29,72,0.2)] bg-black relative">
+                                <div id="reader" className="w-full h-full"></div>
+                        </div>
+                        <p className="mt-6 text-center text-neutral-400 text-sm max-w-xs">
+                            Position the QR code within the frame to scan.
+                        </p>
+                        <button 
+                            onClick={() => setIsScanning(false)}
+                            className="mt-4 text-xs text-neutral-500 underline"
+                        >
+                            Stop Camera
+                        </button>
+                    </>
+                ) : (
+                    <div className="flex flex-col items-center justify-center space-y-6 mt-12 text-center">
+                        <div className="p-6 bg-rose-500/10 rounded-full border border-rose-500/20">
+                            <Camera className="h-12 w-12 text-rose-500" />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-bold text-white">Camera Access Required</h3>
+                            <p className="text-neutral-400 max-w-xs text-sm">
+                                Please enable camera access to scan participant QR codes.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setIsScanning(true)}
+                            className="px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-rose-600/20"
+                        >
+                            Request Access & Start
+                        </button>
+                    </div>
+                )
            )}
        </div>
     </div>
