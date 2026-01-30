@@ -4,9 +4,9 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
 import { doc, getDoc, collection, getDocs, writeBatch, Timestamp, updateDoc, onSnapshot } from 'firebase/firestore';
-import { Loader2, ArrowLeft, Upload, QrCode, Users, Trash2, Download } from 'lucide-react';
+import { Loader2, ArrowLeft, Upload, QrCode, Users, Trash2, Download, Search } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import * as XLSX from 'xlsx';
 import { QRCodeSVG } from 'qrcode.react';
@@ -21,6 +21,17 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [activeTab, setActiveTab] = useState<'list' | 'import' | 'qr'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredParticipants = useMemo(() => {
+    if (!searchQuery) return participants;
+    const lowerQ = searchQuery.toLowerCase();
+    return participants.filter(p => 
+      p.name.toLowerCase().includes(lowerQ) || 
+      p.enrollment.toString().toLowerCase().includes(lowerQ) ||
+      p.email?.toLowerCase().includes(lowerQ)
+    );
+  }, [participants, searchQuery]);
 
   useEffect(() => {
     let unsubscribeParticipants: () => void;
@@ -312,12 +323,25 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                     </div>
 
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-neutral-900/50 p-3 rounded-lg border border-neutral-800 gap-3">
-                        <div className="text-sm text-neutral-400">
-                            Showing <span className="text-white font-bold">{participants.length}</span> participants
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <div className="relative flex-1 sm:w-64">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search name, enrollment..." 
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-md py-1.5 pl-9 pr-4 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-rose-500"
+                                />
+                            </div>
+                            <div className="text-sm text-neutral-400 hidden sm:block">
+                                <span className="text-white font-bold">{filteredParticipants.length}</span> results
+                            </div>
                         </div>
+
                         <button
                             onClick={exportCheckedIn}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-green-600/10 text-green-500 border border-green-600/20 rounded-md text-xs font-bold hover:bg-green-600/20 transition-colors"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-1.5 bg-green-600/10 text-green-500 border border-green-600/20 rounded-md text-xs font-bold hover:bg-green-600/20 transition-colors"
                         >
                             <Download className="w-3 h-3" />
                             Export Attendance (XLSX)
@@ -336,7 +360,7 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-neutral-800">
-                            {participants.map((p, index) => (
+                            {filteredParticipants.map((p, index) => (
                                 <tr key={p.id} className="hover:bg-neutral-900/50">
                                     <td className="px-4 py-3 text-neutral-500">{index + 1}</td>
                                     <td className="px-4 py-3 text-white font-medium max-w-[120px] md:max-w-none truncate" title={p.name}>{p.name}</td>
@@ -356,9 +380,11 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                                     </td>
                                 </tr>
                             ))}
-                            {participants.length === 0 && (
+                            {filteredParticipants.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-neutral-600">No participants yet. Import them.</td>
+                                    <td colSpan={5} className="px-4 py-8 text-center text-neutral-600">
+                                        {searchQuery ? 'No matching participants found.' : 'No participants yet. Import them.'}
+                                    </td>
                                 </tr>
                             )}
                         </tbody>
