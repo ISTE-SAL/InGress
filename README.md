@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InGress
 
-## Getting Started
+**InGress** is a modern, streamlined Event Management and Ticketing solution designed to simplify the process of checking in participants at venues. It bridges the gap between digital registration and physical attendance with a seamless QR code-based workflow.
 
-First, run the development server:
+## 🚀 Purpose
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The primary goal of InGress is to eliminate queues and manual attendance tracking at events. By equipping administrators with powerful management tools and gatekeepers with a fast, reliable scanning interface, InGress ensures a smooth entry experience for thousands of attendees.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 👑 For Administrators
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Event Command Center**: Create and manage multiple events with ease. Toggle events as "Live" or "Completed" to control access in real-time.
+- **Live Analytics**: Monitor attendance as it happens. Watch the "Checked In" count and "Turnout" percentage update instantly as guests arrive.
+- **Bulk Management**:
+  - **Import**: Upload participant lists directly from Excel (.xlsx) files.
+  - **Generate**: Create unique, secure QR codes for all participants in one click and download them as a ZIP bundle.
+  - **Export**: Download the final attendance sheet including timestamps after the event.
+- **User Management**: Create and manage dedicated accounts for Scanners to ensure security.
 
-## Learn More
+### 📱 For Scanners (Gatekeepers)
 
-To learn more about Next.js, take a look at the following resources:
+- **Rapid Scanning**: A mobile-optimized interface designed for speed.
+- **Instant Validation**: Scans QR codes against the live database to verify entry eligibility immediately.
+- **Clear Feedback**: Visual color-coded overlays (Green for Check-in, Red for Error/Duplicate) allow for high-volume processing without reading text.
+- **Duplicate Prevention**: Smart logic prevents accidental double-scans, ensuring accurate data.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Technology
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Built with modern web technologies for performance and reliability:
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Frontend**: Next.js (React)
+- **Styling**: Tailwind CSS & Shadcn UI
+- **Backend & Real-time Database**: Firebase
+- **Authentication**: Secure Role-Based Access Control (RBAC)
