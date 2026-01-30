@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper to check role
+    function hasRole(role) {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // Users collection: Read-only for self/admin? Actually app reads it on login.
+    // AuthContext reads own profile: allow read if request.auth.uid == uid
+    match /users/{uid} {
+      allow read: if request.auth.uid == uid || hasRole('admin');
+      allow write: if request.auth.uid == uid; // Allow users to create their own profile (auto-register)
+    }
+
+    // Events: 
+    // Admin: Read/Write
+    // Scanner: Read only (to validate event)
+    match /events/{eventId} {
+      allow read: if isAuthenticated();
+      allow write: if hasRole('admin');
+
+      // Participants subcollection
+      match /participants/{participantId} {
+        allow read: if isAuthenticated(); // Scanner needs to read to validate
+        allow create, delete: if hasRole('admin'); // Only admin adds participants
+        allow update: if hasRole('admin') || 
+                      (hasRole('scanner') && 
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['checkedIn', 'checkedInAt']) &&
+                       resource.data.checkedIn == false && 
+                       request.resource.data.checkedIn == true); 
+                       // Strict update: only scanner can check-in, only if not already checked in.
+      }
+    }
+  }
+}
