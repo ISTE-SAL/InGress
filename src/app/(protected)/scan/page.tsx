@@ -108,7 +108,7 @@ export default function ScannerPage() {
                   checkedInAt: serverTimestamp()
               });
               
-               setScanResult({ status: 'success', participant: { id: pDoc.id, ...pData } });
+                setScanResult({ status: 'success', participant: { ...pData, id: pDoc.id } });
           });
 
       } catch (error: any) {
