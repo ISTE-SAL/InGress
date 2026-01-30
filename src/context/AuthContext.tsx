@@ -12,6 +12,8 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   loading: boolean;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
