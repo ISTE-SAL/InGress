@@ -4,8 +4,23 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
 import { doc, getDoc, collection, getDocs, writeBatch, Timestamp, updateDoc, onSnapshot } from 'firebase/firestore';
+import { Loader2, ArrowLeft, Upload, QrCode, Users, Trash2, Download } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState, use } from 'react';
+import { useParams } from 'next/navigation';
+import * as XLSX from 'xlsx';
+import { QRCodeSVG } from 'qrcode.react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import QRCode from 'qrcode';
 
-// ... imports
+export default function EventDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [event, setEvent] = useState<IngressEvent | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'list' | 'import' | 'qr'>('list');
 
   useEffect(() => {
     let unsubscribeParticipants: () => void;
