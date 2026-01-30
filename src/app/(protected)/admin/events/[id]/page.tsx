@@ -238,7 +238,6 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
   const percentage = totalParticipants > 0 ? Math.round((checkedInCount / totalParticipants) * 100) : 0;
 
   return (
-  return (
     <div className="min-h-screen bg-neutral-950 p-4 md:p-12">
       <div className="mx-auto max-w-6xl space-y-6 md:space-y-8">
         {/* Header */}
@@ -325,29 +324,34 @@ export default function EventDetailsPage({ params }: { params: Promise<{ id: str
                         </button>
                     </div>
                     
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto border border-neutral-800 rounded-lg">
                     <table className="w-full text-left text-sm text-neutral-400">
                         <thead className="bg-neutral-900/50 text-xs uppercase text-neutral-500">
                             <tr>
-                                <th className="px-4 py-3">Sr No.</th>
+                                <th className="px-4 py-3 w-12">#</th>
                                 <th className="px-4 py-3">Name</th>
-                                <th className="px-4 py-3">Enrollment</th>
-                                <th className="px-4 py-3">Email</th>
-                                <th className="px-4 py-3">Status</th>
+                                <th className="px-4 py-3 hidden md:table-cell">Enrollment</th>
+                                <th className="px-4 py-3 hidden lg:table-cell">Email</th>
+                                <th className="px-4 py-3 text-right">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-neutral-800">
                             {participants.map((p, index) => (
                                 <tr key={p.id} className="hover:bg-neutral-900/50">
                                     <td className="px-4 py-3 text-neutral-500">{index + 1}</td>
-                                    <td className="px-4 py-3 text-white font-medium">{p.name}</td>
-                                    <td className="px-4 py-3">{p.enrollment}</td>
-                                    <td className="px-4 py-3">{p.email}</td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-4 py-3 text-white font-medium max-w-[120px] md:max-w-none truncate" title={p.name}>{p.name}</td>
+                                    <td className="px-4 py-3 hidden md:table-cell">{p.enrollment}</td>
+                                    <td className="px-4 py-3 hidden lg:table-cell">{p.email}</td>
+                                    <td className="px-4 py-3 text-right">
                                         {p.checkedIn ? (
-                                            <span className="text-green-400 bg-green-400/10 px-2 py-1 rounded text-xs">Checked In</span>
+                                            <span className="inline-flex items-center gap-1 text-green-400 bg-green-400/10 px-2 py-1 rounded text-xs font-medium whitespace-nowrap">
+                                                <span className="md:hidden">✓</span>
+                                                <span className="hidden md:inline">Checked In</span>
+                                            </span>
                                         ) : (
-                                            <span className="text-neutral-500 bg-neutral-800 px-2 py-1 rounded text-xs">Pending</span>
+                                            <span className="inline-block text-neutral-500 bg-neutral-800 px-2 py-1 rounded text-xs font-medium whitespace-nowrap">
+                                                Pending
+                                            </span>
                                         )}
                                     </td>
                                 </tr>
