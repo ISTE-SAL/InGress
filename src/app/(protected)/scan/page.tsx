@@ -8,8 +8,10 @@ import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
-// ... (inside component)
+  useEffect(() => {
+    if (!activeEvent || loading || !isScanning) return;
 
+    // Initialize Scanner
     const timer = setTimeout(() => {
         // Clear any existing instance first
         if (scannerRef.current) {
