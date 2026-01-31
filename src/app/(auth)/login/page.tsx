@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, Mail, Lock, ScanLine, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
+import Link from 'next/link';
 
 
 export default function LoginPage() {
@@ -129,7 +130,12 @@ export default function LoginPage() {
                   </div>
                   
                   <div className="space-y-2">
-                      <label className="text-sm font-medium text-neutral-300">Password</label>
+                      <div className="flex items-center justify-between">
+                          <label className="text-sm font-medium text-neutral-300">Password</label>
+                          <Link href="/forgot-password" className="text-xs text-rose-500 hover:text-rose-400 font-medium">
+                              Forgot password?
+                          </Link>
+                      </div>
                       <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-neutral-500" />
                           <input 

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
+import { User, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { UserProfile, UserRole } from '@/types';
@@ -15,6 +15,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   changePassword: (oldPass: string, newPass: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   loginWithEmail: async () => {},
   changePassword: async () => {},
+  resetPassword: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -96,6 +98,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
   };
 
+  const resetPassword = async (email: string) => {
+      try {
+          await sendPasswordResetEmail(auth, email);
+      } catch (error) {
+          console.error("Error sending reset email", error);
+          throw error;
+      }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -106,7 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, signInWithGoogle, logout, loginWithEmail, changePassword }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, signInWithGoogle, logout, loginWithEmail, changePassword, resetPassword }}>
       {!loading && children}
     </AuthContext.Provider>
   );
