@@ -19,6 +19,7 @@ export default function LoginPage() {
   // Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && user && userProfile) {
