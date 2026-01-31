@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { UserProfile, UserRole } from '@/types';
@@ -14,6 +14,7 @@ interface AuthContextType {
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  changePassword: (oldPass: string, newPass: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   signInWithGoogle: async () => {},
   logout: async () => {},
   loginWithEmail: async () => {},
+  changePassword: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -81,6 +83,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
   };
 
+  const changePassword = async (oldPass: string, newPass: string) => {
+      if (!auth.currentUser || !auth.currentUser.email) throw new Error("No user logged in");
+      
+      try {
+          const credential = EmailAuthProvider.credential(auth.currentUser.email, oldPass);
+          await reauthenticateWithCredential(auth.currentUser, credential);
+          await updatePassword(auth.currentUser, newPass);
+      } catch (error) {
+          console.error("Error updating password", error);
+          throw error;
+      }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -91,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, userProfile, loading, signInWithGoogle, logout, loginWithEmail }}>
+    <AuthContext.Provider value={{ user, userProfile, loading, signInWithGoogle, logout, loginWithEmail, changePassword }}>
       {!loading && children}
     </AuthContext.Provider>
   );

@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { IngressEvent } from '@/types';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
-import { Plus, Calendar, MapPin, Loader2, ChevronRight, LogOut, UserPlus } from 'lucide-react';
+import { Plus, Calendar, MapPin, Loader2, ChevronRight, LogOut, UserPlus, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -42,7 +42,15 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Dashboard</h1>
             <p className="text-neutral-400">Welcome, {userProfile?.name} (Admin)</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-3">
+            <Link 
+                href="/change-password"
+                className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 transition-colors"
+                title="Change Password"
+            >
+                <KeyRound className="w-4 h-4" />
+                <span className="hidden sm:inline">Password</span>
+            </Link>
             <button 
                 onClick={() => logout()}
                 className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 transition-colors"

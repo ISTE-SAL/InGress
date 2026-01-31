@@ -5,7 +5,8 @@ import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
-import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera } from 'lucide-react';
+import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera, KeyRound } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 
 type ScanResult = 
