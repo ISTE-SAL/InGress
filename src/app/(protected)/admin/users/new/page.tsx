@@ -22,7 +22,7 @@ const firebaseConfig = {
 export default function CreateUserPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'scanner' | 'admin'>('scanner');
+  const [role, setRole] = useState<'scanner' | 'admin' | 'admin_scanner'>('scanner');
   const [formData, setFormData] = useState({
     name: '',
     email: '',

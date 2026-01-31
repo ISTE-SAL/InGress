@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Loader2, Mail, Lock } from 'lucide-react';
+import { Loader2, Mail, Lock, ScanLine, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
 
 
 export default function LoginPage() {
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState('');
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
   
   // Form State
   const [email, setEmail] = useState('');
@@ -21,6 +23,7 @@ export default function LoginPage() {
     if (!loading && user && userProfile) {
       if (userProfile.role === 'admin') router.push('/admin');
       else if (userProfile.role === 'scanner') router.push('/scan');
+      else if (userProfile.role === 'admin_scanner') setShowRoleSelection(true);
     }
   }, [loading, user, userProfile, router]);
 
@@ -36,12 +39,57 @@ export default function LoginPage() {
       }
   };
 
+  const handleRoleSelect = (target: 'admin' | 'scan') => {
+      router.push(`/${target}`);
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-neutral-950">
         <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
       </div>
     );
+  }
+
+  // Role Selection View for Dual Role Users
+  if (showRoleSelection && userProfile?.role === 'admin_scanner') {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] px-4">
+             <div className="w-full max-w-md space-y-6">
+                <div className="text-center mb-8">
+                    <h2 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome, {userProfile.name}</h2>
+                    <p className="text-neutral-400">Select a dashboard to continue</p>
+                </div>
+                <div className="grid gap-4">
+                    <button 
+                        onClick={() => handleRoleSelect('admin')}
+                        className="flex items-center gap-4 bg-neutral-900/50 border border-white/10 p-6 rounded-xl hover:bg-neutral-800 transition-all hover:border-rose-500/50 hover:shadow-lg hover:shadow-rose-500/10 group text-left"
+                    >
+                        <div className="p-3 bg-rose-500/10 rounded-lg group-hover:bg-rose-500/20 text-rose-500">
+                            <ShieldCheck className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-white text-lg">Admin Dashboard</h3>
+                            <p className="text-sm text-neutral-400">Manage events, users and analytics</p>
+                        </div>
+                    </button>
+
+                    <button 
+                        onClick={() => handleRoleSelect('scan')}
+                        className="flex items-center gap-4 bg-neutral-900/50 border border-white/10 p-6 rounded-xl hover:bg-neutral-800 transition-all hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10 group text-left"
+                    >
+                        <div className="p-3 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 text-emerald-500">
+                            <ScanLine className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-white text-lg">Scanner Interface</h3>
+                            <p className="text-sm text-neutral-400">Check-in participants via QR code</p>
+                        </div>
+                    </button>
+                </div>
+             </div>
+        </div>
+      );
   }
 
   return (
