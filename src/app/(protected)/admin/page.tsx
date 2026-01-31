@@ -58,13 +58,15 @@ export default function AdminDashboard() {
                 <LogOut className="w-4 h-4" />
                 Logout
             </button>
-            <Link 
-              href="/admin/users/new"
-              className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 transition-colors"
-            >
-                <UserPlus className="w-4 h-4" />
-                Create User
-            </Link>
+            {userProfile?.role === 'admin_scanner' && (
+              <Link 
+                href="/admin/users/new"
+                className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 transition-colors"
+              >
+                  <UserPlus className="w-4 h-4" />
+                  Create User
+              </Link>
+            )}
             <Link 
               href="/admin/events/new"
               className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-500 transition-colors shadow-[0_0_20px_rgba(225,29,72,0.3)]"

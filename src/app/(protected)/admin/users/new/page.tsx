@@ -20,6 +20,7 @@ const firebaseConfig = {
 };
 
 export default function CreateUserPage() {
+  const { userProfile, loading: authLoading } = useAuth(); // Get profile
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'scanner' | 'admin' | 'admin_scanner'>('scanner');
@@ -28,6 +29,20 @@ export default function CreateUserPage() {
     email: '',
     password: ''
   });
+
+  useEffect(() => {
+    if (!authLoading && userProfile?.role !== 'admin_scanner') {
+        router.push('/admin');
+    }
+  }, [userProfile, authLoading, router]);
+
+  if (authLoading || userProfile?.role !== 'admin_scanner') {
+      return (
+          <div className="flex h-screen w-full items-center justify-center bg-neutral-950">
+            <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
+          </div>
+      );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
