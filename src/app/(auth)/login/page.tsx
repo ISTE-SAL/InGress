@@ -139,13 +139,20 @@ export default function LoginPage() {
                       <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-neutral-500" />
                           <input 
-                              type="password" 
+                              type={showPassword ? "text" : "password"}
                               required
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
-                              className="w-full rounded-lg border border-neutral-800 bg-neutral-900/50 p-2.5 pl-10 text-white placeholder:text-neutral-600 focus:border-rose-500/50 focus:ring-rose-500/20"
+                              className="w-full rounded-lg border border-neutral-800 bg-neutral-900/50 p-2.5 pl-10 pr-10 text-white placeholder:text-neutral-600 focus:border-rose-500/50 focus:ring-rose-500/20"
                               placeholder="••••••••"
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-3 text-neutral-500 hover:text-white transition-colors"
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
                       </div>
                   </div>
 
