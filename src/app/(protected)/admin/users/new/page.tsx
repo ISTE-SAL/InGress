@@ -108,14 +108,14 @@ export default function CreateUserPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             
             {/* Role Selection */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
                 <button
                     type="button"
                     onClick={() => setRole('scanner')}
                     className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${role === 'scanner' ? 'bg-rose-600/10 border-rose-600 text-white' : 'bg-black/50 border-neutral-800 text-neutral-400 hover:bg-neutral-900'}`}
                 >
                     <ScanLine className={`h-8 w-8 mb-2 ${role === 'scanner' ? 'text-rose-500' : 'text-neutral-500'}`} />
-                    <span className="font-medium">Scanner</span>
+                    <span className="font-medium text-sm">Scanner</span>
                 </button>
                 <button
                     type="button"
@@ -123,7 +123,15 @@ export default function CreateUserPage() {
                     className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${role === 'admin' ? 'bg-rose-600/10 border-rose-600 text-white' : 'bg-black/50 border-neutral-800 text-neutral-400 hover:bg-neutral-900'}`}
                 >
                     <Shield className={`h-8 w-8 mb-2 ${role === 'admin' ? 'text-rose-500' : 'text-neutral-500'}`} />
-                    <span className="font-medium">Admin</span>
+                    <span className="font-medium text-sm">Admin</span>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setRole('admin_scanner')}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${role === 'admin_scanner' ? 'bg-rose-600/10 border-rose-600 text-white' : 'bg-black/50 border-neutral-800 text-neutral-400 hover:bg-neutral-900'}`}
+                >
+                    <UserPlus className={`h-8 w-8 mb-2 ${role === 'admin_scanner' ? 'text-rose-500' : 'text-neutral-500'}`} />
+                    <span className="font-medium text-sm">Both</span>
                 </button>
             </div>
 
