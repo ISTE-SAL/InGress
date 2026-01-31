@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { Loader2, ArrowLeft, UserPlus, Shield, ScanLine } from 'lucide-react';
+import { Loader2, ArrowLeft, UserPlus, Shield, ScanLine, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 // Use same config as main app
@@ -24,6 +24,7 @@ export default function CreateUserPage() {
   const { userProfile, loading: authLoading } = useAuth(); // Get profile
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<'scanner' | 'admin' | 'admin_scanner'>('scanner');
   const [formData, setFormData] = useState({
     name: '',
