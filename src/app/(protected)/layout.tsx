@@ -30,12 +30,12 @@ export default function ProtectedLayout({
 
     // Role-based protection
     if (pathname.startsWith('/admin')) {
-      if (userProfile.role !== 'admin') {
+      if (userProfile.role !== 'admin' && userProfile.role !== 'admin_scanner') {
         router.push(userProfile.role === 'scanner' ? '/scan' : '/login');
         return;
       }
     } else if (pathname.startsWith('/scan')) {
-      if (userProfile.role !== 'scanner') {
+      if (userProfile.role !== 'scanner' && userProfile.role !== 'admin_scanner') {
         router.push(userProfile.role === 'admin' ? '/admin' : '/login');
         return;
       }
