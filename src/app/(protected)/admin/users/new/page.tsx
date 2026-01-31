@@ -179,15 +179,24 @@ export default function CreateUserPage() {
 
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-300">Password</label>
-                    <input
-                        required
-                        type="password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full rounded-lg border border-neutral-800 bg-black/50 px-4 py-3 text-white placeholder-neutral-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all"
-                        placeholder="Min. 6 characters"
-                        minLength={6}
-                    />
+                    <div className="relative">
+                        <input
+                            required
+                            type={showPassword ? "text" : "password"}
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className="w-full rounded-lg border border-neutral-800 bg-black/50 px-4 py-3 pr-12 text-white placeholder-neutral-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all"
+                            placeholder="Min. 6 characters"
+                            minLength={6}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                        >
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                    </div>
                     <p className="text-xs text-neutral-500">
                         {role === 'scanner' ? 'Scanner' : 'Admin'} will use these credentials to log in.
                     </p>
