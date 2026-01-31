@@ -40,7 +40,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Dashboard</h1>
-            <p className="text-neutral-400">Welcome, {userProfile?.name} (Admin)</p>
+            <p className="text-neutral-400">Welcome, {userProfile?.name} ({userProfile?.role === 'admin_scanner' ? 'Super Admin' : 'Admin'})</p>
           </div>
           <div className="flex gap-3">
             <Link 
