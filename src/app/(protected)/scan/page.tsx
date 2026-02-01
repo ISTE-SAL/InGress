@@ -204,32 +204,7 @@ export default function ScannerPage() {
                <div className="text-white">Loading...</div>
            ) : selectedEvent ? (
                <div className="flex flex-col">
-                   <div className="flex items-center gap-2">
-                       {activeEvents.length > 1 ? (
-                           <div className="relative">
-                               <select 
-                                   value={selectedEvent.id}
-                                   onChange={(e) => {
-                                       const evt = activeEvents.find(ev => ev.id === e.target.value);
-                                       if (evt) {
-                                           setSelectedEvent(evt);
-                                           localStorage.setItem('ingress_selected_event_id', evt.id);
-                                       }
-                                   }}
-                                   className="appearance-none bg-transparent text-lg font-bold text-white pr-8 focus:outline-none cursor-pointer"
-                               >
-                                   {activeEvents.map(evt => (
-                                       <option key={evt.id} value={evt.id} className="bg-neutral-900 text-white">
-                                           {evt.name}
-                                       </option>
-                                   ))}
-                               </select>
-                               <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
-                           </div>
-                       ) : (
-                           <h2 className="text-white font-semibold">{selectedEvent.name}</h2>
-                       )}
-                   </div>
+                   <h2 className="text-white font-semibold text-lg">{selectedEvent.name}</h2>
                    <p className="text-xs text-green-400 flex items-center gap-1 mt-0.5">
                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/> LIVE SCANNING
                    </p>
@@ -281,19 +256,44 @@ export default function ScannerPage() {
                         </button>
                     </>
                 ) : (
-                    <div className="flex flex-col items-center justify-center space-y-6 mt-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-6 mt-12 text-center w-full max-w-xs">
                         <div className="p-6 bg-rose-500/10 rounded-full border border-rose-500/20">
                             <Camera className="h-12 w-12 text-rose-500" />
                         </div>
-                        <div className="space-y-2">
-                            <h3 className="text-xl font-bold text-white">Ready to Scan</h3>
-                            <p className="text-neutral-400 max-w-xs text-sm">
-                                Ensure you are scanning for <strong>{selectedEvent.name}</strong>.
-                            </p>
+                        
+                        <div className="w-full space-y-2">
+                             <label className="text-sm font-medium text-neutral-400">Select Event to Scan</label>
+                             {activeEvents.length > 1 ? (
+                                <div className="relative text-left">
+                                    <select 
+                                        value={selectedEvent.id}
+                                        onChange={(e) => {
+                                            const evt = activeEvents.find(ev => ev.id === e.target.value);
+                                            if (evt) {
+                                                setSelectedEvent(evt);
+                                                localStorage.setItem('ingress_selected_event_id', evt.id);
+                                            }
+                                        }}
+                                        className="w-full appearance-none bg-neutral-900 border border-neutral-800 rounded-xl py-3 px-4 text-white font-medium focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all cursor-pointer"
+                                    >
+                                        {activeEvents.map(evt => (
+                                            <option key={evt.id} value={evt.id} className="bg-neutral-900">
+                                                {evt.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+                                </div>
+                             ) : (
+                                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-3 px-4 text-white font-medium text-center">
+                                    {selectedEvent.name}
+                                </div>
+                             )}
                         </div>
+
                         <button
                             onClick={() => setIsScanning(true)}
-                            className="px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-rose-600/20"
+                            className="w-full px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-rose-600/20"
                         >
                             Start Scanning
                         </button>
