@@ -4,8 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
-import { Html5Qrcode } from 'html5-qrcode';
-import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera, KeyRound, ChevronDown, Check } from 'lucide-react';
+import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
+import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera, KeyRound, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 
@@ -18,11 +18,10 @@ export default function ScannerPage() {
   const { logout } = useAuth();
   const [activeEvents, setActiveEvents] = useState<IngressEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<IngressEvent | null>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [scanResult, setScanResult] = useState<ScanResult>({ status: 'idle' });
   const [isScanning, setIsScanning] = useState(false);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const lastScannedRef = useRef<{ text: string, time: number } | null>(null);
 
   useEffect(() => {
@@ -53,41 +52,36 @@ export default function ScannerPage() {
   }, []);
 
   useEffect(() => {
-    if (isScanning && selectedEvent) {
-        // cleanup previous instance if exists (safety)
+    if (!selectedEvent || loading || !isScanning) return;
+
+    // Initialize Scanner
+    const timer = setTimeout(() => {
+        // Clear any existing instance first
         if (scannerRef.current) {
-             scannerRef.current.clear().catch(console.error);
+            scannerRef.current.clear().catch(console.error);
         }
 
-        const html5QrCode = new Html5Qrcode("reader");
-        scannerRef.current = html5QrCode;
-
-        html5QrCode.start(
-            { facingMode: "environment" },
+        const scanner = new Html5QrcodeScanner(
+            "reader",
             { 
                 fps: 10, 
                 qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
             },
-            onScanSuccess,
-            onScanFailure
-        ).catch(err => {
-            console.error("Failed to start scanner", err);
-            // Optionally handle permission errors here
-            setIsScanning(false);
-        });
+            /* verbose= */ false
+        );
+        scannerRef.current = scanner;
 
-        return () => {
-            if (html5QrCode) {
-                 html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => {
-                     // Start/Stop race conditions are common, mostly benign
-                     console.warn("Scanner stop warning:", err);
-                 });
-            }
-        };
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isScanning, selectedEvent]);
+        scanner.render(onScanSuccess, onScanFailure);
+    }, 100);
+
+    return () => {
+        clearTimeout(timer);
+        if (scannerRef.current) {
+            scannerRef.current.clear().catch(err => console.error("Failed to clear html5-qrcode", err));
+        }
+    };
+  }, [selectedEvent, loading, isScanning]);
 
   const onScanSuccess = async (decodedText: string, decodedResult: any) => {
       // Prevent frequent duplicate scans (e.g., if camera is still pointing at same code)
@@ -106,7 +100,7 @@ export default function ScannerPage() {
 
       if (scannerRef.current) {
           try {
-             scannerRef.current.pause(true); // Pause scanning
+             await scannerRef.current.pause(true); // Pause scanning
           } catch(e) {}
       }
 
@@ -248,6 +242,7 @@ export default function ScannerPage() {
            {selectedEvent && (
                 isScanning ? (
                     <>
+                        {/* We use specific ID for styling to hide file input if library leaks it */}
                         <div className="w-full max-w-md overflow-hidden rounded-2xl border-2 border-rose-500/50 shadow-[0_0_40px_rgba(225,29,72,0.2)] bg-black relative">
                                 <div id="reader" className="w-full h-full"></div>
                         </div>
@@ -262,58 +257,41 @@ export default function ScannerPage() {
                         </button>
                     </>
                 ) : (
-                    <div className="flex flex-col items-center justify-center space-y-6 mt-12 text-center w-full max-w-xs">
+                    <div className="flex flex-col items-center justify-center space-y-6 mt-12 text-center w-full max-w-sm">
                         <div className="p-6 bg-rose-500/10 rounded-full border border-rose-500/20">
                             <Camera className="h-12 w-12 text-rose-500" />
                         </div>
                         
-                        <div className="w-full space-y-2 relative z-20 text-left">
-                             <label className="text-sm font-medium text-neutral-400 ml-1">Select Active Event</label>
-                             {activeEvents.length > 1 ? (
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                        className={`w-full flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded-xl py-4 px-5 text-white font-medium hover:border-neutral-700 transition-all outline-none ${isDropdownOpen ? 'ring-2 ring-rose-500/20 border-rose-500/50' : ''}`}
-                                    >
-                                        <span className="truncate text-left">{selectedEvent.name}</span>
-                                        <ChevronDown className={`h-5 w-5 text-neutral-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-
-                                    {isDropdownOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
-                                            
-                                            <div className="absolute bottom-full left-0 right-0 mb-2 z-20 bg-neutral-900/95 backdrop-blur-xl border border-neutral-800 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                                <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
-                                                    {activeEvents.map(evt => (
-                                                        <button
-                                                            key={evt.id}
-                                                            onClick={() => {
-                                                                setSelectedEvent(evt);
-                                                                localStorage.setItem('ingress_selected_event_id', evt.id);
-                                                                setIsDropdownOpen(false);
-                                                            }}
-                                                            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition-colors ${selectedEvent.id === evt.id ? 'bg-rose-500/10 text-rose-500' : 'text-neutral-300 hover:bg-white/5 hover:text-white'}`}
-                                                        >
-                                                            <span className="font-medium truncate mr-2">{evt.name}</span>
-                                                            {selectedEvent.id === evt.id && <Check className="h-4 w-4 shrink-0" />}
-                                                        </button>
-                                                    ))}
-                                                </div>
+                        <div className="w-full space-y-3">
+                             <label className="text-sm font-medium text-neutral-400">Select Event to Scan</label>
+                             <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar px-1">
+                                 {activeEvents.map(evt => (
+                                     <button
+                                         key={evt.id}
+                                         onClick={() => {
+                                             setSelectedEvent(evt);
+                                             localStorage.setItem('ingress_selected_event_id', evt.id);
+                                         }}
+                                         className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
+                                             selectedEvent.id === evt.id 
+                                             ? 'border-rose-500 bg-rose-500/10 text-white shadow-[0_0_15px_rgba(225,29,72,0.15)] ring-1 ring-rose-500' 
+                                             : 'border-neutral-800 bg-neutral-900/50 text-neutral-400 hover:bg-neutral-900 hover:border-neutral-700'
+                                         }`}
+                                     >
+                                        <span className="font-semibold">{evt.name}</span>
+                                        {selectedEvent.id === evt.id && (
+                                            <div className="bg-rose-500 rounded-full p-1">
+                                                <Check className="h-3 w-3 text-white" />
                                             </div>
-                                        </>
-                                    )}
-                                </div>
-                             ) : (
-                                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-4 px-5 text-white font-medium text-center">
-                                    {selectedEvent.name}
-                                </div>
-                             )}
+                                        )}
+                                     </button>
+                                 ))}
+                             </div>
                         </div>
 
                         <button
                             onClick={() => setIsScanning(true)}
-                            className="w-full px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-rose-600/20"
+                            className="w-full px-8 py-4 bg-white hover:bg-neutral-200 text-black font-bold rounded-xl transition-colors shadow-lg mt-4"
                         >
                             Start Scanning
                         </button>
