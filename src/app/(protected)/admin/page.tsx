@@ -37,12 +37,12 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-neutral-950 p-6 md:p-12">
       <div className="mx-auto max-w-5xl space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Dashboard</h1>
             <p className="text-neutral-400">Welcome, {userProfile?.name} ({userProfile?.role === 'admin_scanner' ? 'Super Admin' : 'Admin'})</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link 
                 href="/change-password"
                 className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 transition-colors"
@@ -56,7 +56,7 @@ export default function AdminDashboard() {
                 className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 transition-colors"
             >
                 <LogOut className="w-4 h-4" />
-                Logout
+                <span className="hidden sm:inline">Logout</span>
             </button>
             {userProfile?.role === 'admin_scanner' && (
               <Link 
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
                 className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 transition-colors"
               >
                   <UserPlus className="w-4 h-4" />
-                  Create User
+                  <span className="hidden sm:inline">Create User</span>
               </Link>
             )}
             <Link 
@@ -72,7 +72,7 @@ export default function AdminDashboard() {
               className="flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-500 transition-colors shadow-[0_0_20px_rgba(225,29,72,0.3)]"
             >
               <Plus className="h-4 w-4" />
-              Create Event
+              <span className="hidden sm:inline">Create Event</span>
             </Link>
           </div>
         </div>
