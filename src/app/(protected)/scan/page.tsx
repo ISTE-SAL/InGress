@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
-import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera, KeyRound, ChevronDown } from 'lucide-react';
+import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera, KeyRound, ChevronDown, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 
@@ -18,6 +18,7 @@ export default function ScannerPage() {
   const { logout } = useAuth();
   const [activeEvents, setActiveEvents] = useState<IngressEvent[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<IngressEvent | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [scanResult, setScanResult] = useState<ScanResult>({ status: 'idle' });
   const [isScanning, setIsScanning] = useState(false);
@@ -261,31 +262,45 @@ export default function ScannerPage() {
                             <Camera className="h-12 w-12 text-rose-500" />
                         </div>
                         
-                        <div className="w-full space-y-2">
-                             <label className="text-sm font-medium text-neutral-400">Select Event to Scan</label>
+                        <div className="w-full space-y-2 relative z-20 text-left">
+                             <label className="text-sm font-medium text-neutral-400 ml-1">Select Active Event</label>
                              {activeEvents.length > 1 ? (
-                                <div className="relative text-left">
-                                    <select 
-                                        value={selectedEvent.id}
-                                        onChange={(e) => {
-                                            const evt = activeEvents.find(ev => ev.id === e.target.value);
-                                            if (evt) {
-                                                setSelectedEvent(evt);
-                                                localStorage.setItem('ingress_selected_event_id', evt.id);
-                                            }
-                                        }}
-                                        className="w-full appearance-none bg-neutral-900 border border-neutral-800 rounded-xl py-3 px-4 text-white font-medium focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all cursor-pointer"
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                        className={`w-full flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded-xl py-4 px-5 text-white font-medium hover:border-neutral-700 transition-all outline-none ${isDropdownOpen ? 'ring-2 ring-rose-500/20 border-rose-500/50' : ''}`}
                                     >
-                                        {activeEvents.map(evt => (
-                                            <option key={evt.id} value={evt.id} className="bg-neutral-900">
-                                                {evt.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+                                        <span className="truncate text-left">{selectedEvent.name}</span>
+                                        <ChevronDown className={`h-5 w-5 text-neutral-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {isDropdownOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)} />
+                                            
+                                            <div className="absolute bottom-full left-0 right-0 mb-2 z-20 bg-neutral-900/95 backdrop-blur-xl border border-neutral-800 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                                <div className="max-h-60 overflow-y-auto p-1 custom-scrollbar">
+                                                    {activeEvents.map(evt => (
+                                                        <button
+                                                            key={evt.id}
+                                                            onClick={() => {
+                                                                setSelectedEvent(evt);
+                                                                localStorage.setItem('ingress_selected_event_id', evt.id);
+                                                                setIsDropdownOpen(false);
+                                                            }}
+                                                            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm transition-colors ${selectedEvent.id === evt.id ? 'bg-rose-500/10 text-rose-500' : 'text-neutral-300 hover:bg-white/5 hover:text-white'}`}
+                                                        >
+                                                            <span className="font-medium truncate mr-2">{evt.name}</span>
+                                                            {selectedEvent.id === evt.id && <Check className="h-4 w-4 shrink-0" />}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                              ) : (
-                                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-3 px-4 text-white font-medium text-center">
+                                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-4 px-5 text-white font-medium text-center">
                                     {selectedEvent.name}
                                 </div>
                              )}
