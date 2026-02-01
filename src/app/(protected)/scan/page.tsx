@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
-import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera, KeyRound } from 'lucide-react';
+import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera, KeyRound, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 
@@ -16,7 +16,8 @@ type ScanResult =
 
 export default function ScannerPage() {
   const { logout } = useAuth();
-  const [activeEvent, setActiveEvent] = useState<IngressEvent | null>(null);
+  const [activeEvents, setActiveEvents] = useState<IngressEvent[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<IngressEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanResult, setScanResult] = useState<ScanResult>({ status: 'idle' });
   const [isScanning, setIsScanning] = useState(false);
@@ -24,13 +25,15 @@ export default function ScannerPage() {
   const lastScannedRef = useRef<{ text: string, time: number } | null>(null);
 
   useEffect(() => {
-    const fetchActiveEvent = async () => {
+    const fetchActiveEvents = async () => {
       try {
         const q = query(collection(db, 'events'), where('isActive', '==', true));
         const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          const eventDoc = snapshot.docs[0];
-          setActiveEvent({ id: eventDoc.id, ...eventDoc.data() } as IngressEvent);
+        const eventsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as IngressEvent));
+        
+        setActiveEvents(eventsList);
+        if (eventsList.length > 0) {
+            setSelectedEvent(eventsList[0]);
         }
       } catch (e) {
         console.error(e);
@@ -38,11 +41,11 @@ export default function ScannerPage() {
         setLoading(false);
       }
     };
-    fetchActiveEvent();
+    fetchActiveEvents();
   }, []);
 
   useEffect(() => {
-    if (!activeEvent || loading || !isScanning) return;
+    if (!selectedEvent || loading || !isScanning) return;
 
     // Initialize Scanner
     const timer = setTimeout(() => {
@@ -71,7 +74,7 @@ export default function ScannerPage() {
             scannerRef.current.clear().catch(err => console.error("Failed to clear html5-qrcode", err));
         }
     };
-  }, [activeEvent, loading, isScanning]);
+  }, [selectedEvent, loading, isScanning]);
 
   const onScanSuccess = async (decodedText: string, decodedResult: any) => {
       // Prevent frequent duplicate scans (e.g., if camera is still pointing at same code)
@@ -83,7 +86,7 @@ export default function ScannerPage() {
           return;
       }
 
-      if (!activeEvent) return;
+      if (!selectedEvent) return;
       
       // Update last scanned (do this before async ops to prevent race conditions)
       lastScannedRef.current = { text: decodedText, time: now };
@@ -99,8 +102,8 @@ export default function ScannerPage() {
           const { eventId, participantId, signature } = payload;
 
           // 1. Validation Logic
-          if (eventId !== activeEvent.id) {
-              throw new Error('QR invalid for this event');
+          if (eventId !== selectedEvent.id) {
+              throw new Error(`QR is for a different event. This scanner is set to: ${selectedEvent.name}`);
           }
           // Verify signature here if implemented
 
@@ -151,11 +154,6 @@ export default function ScannerPage() {
       }
   };
 
-  // ... (previous code)
-
-  // NOTE: We do NOT return early for success/error anymore, 
-  // so the scanner instance in the DOM needs to persist.
-
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col relative">
        {/* Global Overlay for Success/Error */}
@@ -195,34 +193,70 @@ export default function ScannerPage() {
 
        {/* Header */}
        <div className="flex items-center justify-between p-4 bg-neutral-900 border-b border-neutral-800 z-10">
-           {activeEvent ? (
-               <div>
-                   <h2 className="text-white font-semibold">{activeEvent.name}</h2>
-                   <p className="text-xs text-green-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/> LIVE SCANNING</p>
+           {loading ? (
+               <div className="text-white">Loading...</div>
+           ) : selectedEvent ? (
+               <div className="flex flex-col">
+                   <div className="flex items-center gap-2">
+                       {activeEvents.length > 1 ? (
+                           <div className="relative">
+                               <select 
+                                   value={selectedEvent.id}
+                                   onChange={(e) => {
+                                       const evt = activeEvents.find(ev => ev.id === e.target.value);
+                                       if (evt) setSelectedEvent(evt);
+                                   }}
+                                   className="appearance-none bg-transparent text-white font-semibold pr-8 focus:outline-none cursor-pointer"
+                               >
+                                   {activeEvents.map(evt => (
+                                       <option key={evt.id} value={evt.id} className="bg-neutral-900 text-white">
+                                           {evt.name}
+                                       </option>
+                                   ))}
+                               </select>
+                               <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+                           </div>
+                       ) : (
+                           <h2 className="text-white font-semibold">{selectedEvent.name}</h2>
+                       )}
+                   </div>
+                   <p className="text-xs text-green-400 flex items-center gap-1 mt-0.5">
+                       <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/> LIVE SCANNING
+                   </p>
                </div>
            ) : (
-               <div className="text-white">Loading...</div>
+               <div className="text-neutral-400">No active events</div>
            )}
-           <button onClick={logout} className="p-2 text-neutral-400 hover:text-white">
-               <LogOut className="h-5 w-5" />
-           </button>
+           
+           <div className="flex items-center gap-3">
+               <Link 
+                   href="/change-password"
+                   className="p-2 text-neutral-400 hover:text-white"
+                   title="Change Password"
+               >
+                   <KeyRound className="h-5 w-5" />
+               </Link>
+               <button onClick={logout} className="p-2 text-neutral-400 hover:text-white" title="Logout">
+                   <LogOut className="h-5 w-5" />
+               </button>
+           </div>
        </div>
 
        {/* Scanner View */}
        <div className="flex-1 flex flex-col items-center pt-8 px-4">
            {/* If no active event, show empty state */}
-           {!activeEvent && !loading && (
+           {!selectedEvent && !loading && (
                 <div className="flex flex-col items-center justify-center h-full text-center text-white">
                     <ScanLine className="h-16 w-16 mb-4 text-neutral-500" />
                     <h1 className="text-2xl font-bold">No Active Event</h1>
+                    <p className="text-neutral-500 mt-2">Ask an admin to activate an event.</p>
                 </div>
            )}
 
-           {/* Scanner Container - Always render if an event exists, but might be hidden by overlay */}
-           {activeEvent && (
+           {/* Scanner Container */}
+           {selectedEvent && (
                 isScanning ? (
                     <>
-                        {/* We use specific ID for styling to hide file input if library leaks it */}
                         <div className="w-full max-w-md overflow-hidden rounded-2xl border-2 border-rose-500/50 shadow-[0_0_40px_rgba(225,29,72,0.2)] bg-black relative">
                                 <div id="reader" className="w-full h-full"></div>
                         </div>
@@ -244,7 +278,7 @@ export default function ScannerPage() {
                         <div className="space-y-2">
                             <h3 className="text-xl font-bold text-white">Camera Access Required</h3>
                             <p className="text-neutral-400 max-w-xs text-sm">
-                                Please enable camera access to scan participant QR codes.
+                                Ready to scan for <strong>{selectedEvent.name}</strong>.
                             </p>
                         </div>
                         <button
