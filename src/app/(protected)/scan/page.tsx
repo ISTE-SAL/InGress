@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { IngressEvent, Participant } from '@/types';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
-import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { Loader2, ScanLine, XCircle, CheckCircle, LogOut, Camera, KeyRound, ChevronDown, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
@@ -22,7 +22,7 @@ export default function ScannerPage() {
   const [loading, setLoading] = useState(true);
   const [scanResult, setScanResult] = useState<ScanResult>({ status: 'idle' });
   const [isScanning, setIsScanning] = useState(false);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastScannedRef = useRef<{ text: string, time: number } | null>(null);
 
   useEffect(() => {
@@ -53,36 +53,41 @@ export default function ScannerPage() {
   }, []);
 
   useEffect(() => {
-    if (!selectedEvent || loading || !isScanning) return;
-
-    // Initialize Scanner
-    const timer = setTimeout(() => {
-        // Clear any existing instance first
+    if (isScanning && selectedEvent) {
+        // cleanup previous instance if exists (safety)
         if (scannerRef.current) {
-            scannerRef.current.clear().catch(console.error);
+             scannerRef.current.clear().catch(console.error);
         }
 
-        const scanner = new Html5QrcodeScanner(
-            "reader",
+        const html5QrCode = new Html5Qrcode("reader");
+        scannerRef.current = html5QrCode;
+
+        html5QrCode.start(
+            { facingMode: "environment" },
             { 
                 fps: 10, 
                 qrbox: { width: 250, height: 250 },
-                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+                aspectRatio: 1.0
             },
-            /* verbose= */ false
-        );
-        scannerRef.current = scanner;
+            onScanSuccess,
+            onScanFailure
+        ).catch(err => {
+            console.error("Failed to start scanner", err);
+            // Optionally handle permission errors here
+            setIsScanning(false);
+        });
 
-        scanner.render(onScanSuccess, onScanFailure);
-    }, 100);
-
-    return () => {
-        clearTimeout(timer);
-        if (scannerRef.current) {
-            scannerRef.current.clear().catch(err => console.error("Failed to clear html5-qrcode", err));
-        }
-    };
-  }, [selectedEvent, loading, isScanning]);
+        return () => {
+            if (html5QrCode) {
+                 html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => {
+                     // Start/Stop race conditions are common, mostly benign
+                     console.warn("Scanner stop warning:", err);
+                 });
+            }
+        };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isScanning, selectedEvent]);
 
   const onScanSuccess = async (decodedText: string, decodedResult: any) => {
       // Prevent frequent duplicate scans (e.g., if camera is still pointing at same code)
@@ -101,7 +106,7 @@ export default function ScannerPage() {
 
       if (scannerRef.current) {
           try {
-             await scannerRef.current.pause(true); // Pause scanning
+             scannerRef.current.pause(true); // Pause scanning
           } catch(e) {}
       }
 
