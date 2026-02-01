@@ -32,7 +32,14 @@ export default function ScannerPage() {
         const eventsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as IngressEvent));
         
         setActiveEvents(eventsList);
-        if (eventsList.length > 0) {
+        
+        // Persist selection
+        const savedId = localStorage.getItem('ingress_selected_event_id');
+        const savedEvent = eventsList.find(e => e.id === savedId);
+        
+        if (savedEvent) {
+            setSelectedEvent(savedEvent);
+        } else if (eventsList.length > 0) {
             setSelectedEvent(eventsList[0]);
         }
       } catch (e) {
@@ -204,9 +211,12 @@ export default function ScannerPage() {
                                    value={selectedEvent.id}
                                    onChange={(e) => {
                                        const evt = activeEvents.find(ev => ev.id === e.target.value);
-                                       if (evt) setSelectedEvent(evt);
+                                       if (evt) {
+                                           setSelectedEvent(evt);
+                                           localStorage.setItem('ingress_selected_event_id', evt.id);
+                                       }
                                    }}
-                                   className="appearance-none bg-transparent text-white font-semibold pr-8 focus:outline-none cursor-pointer"
+                                   className="appearance-none bg-transparent text-lg font-bold text-white pr-8 focus:outline-none cursor-pointer"
                                >
                                    {activeEvents.map(evt => (
                                        <option key={evt.id} value={evt.id} className="bg-neutral-900 text-white">
@@ -276,16 +286,16 @@ export default function ScannerPage() {
                             <Camera className="h-12 w-12 text-rose-500" />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-xl font-bold text-white">Camera Access Required</h3>
+                            <h3 className="text-xl font-bold text-white">Ready to Scan</h3>
                             <p className="text-neutral-400 max-w-xs text-sm">
-                                Ready to scan for <strong>{selectedEvent.name}</strong>.
+                                Ensure you are scanning for <strong>{selectedEvent.name}</strong>.
                             </p>
                         </div>
                         <button
                             onClick={() => setIsScanning(true)}
                             className="px-8 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-rose-600/20"
                         >
-                            Request Access & Start
+                            Start Scanning
                         </button>
                     </div>
                 )
